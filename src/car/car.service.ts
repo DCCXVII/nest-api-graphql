@@ -1,6 +1,8 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Car } from "./car.entity";
+import { CarRepository } from "./car.repo";
+import { NotFoundError } from "rxjs";
 
 @Injectable()
 export class CarService{
@@ -9,13 +11,59 @@ export class CarService{
         private carRepository:CarRepository<Car>,
 ){}
 
-public async getCar():Promise<{status: number;message:string; cars:Car[]}>{
-    try{
-        const cars = await this.carRepository.find();
-        if(!cars|| cars.length===0){
-            throw new HttpException('No cars fooound',HttpStatus.NOT_FOUND);
+// FetchCar
+    public async getCar():Promise<{status: number;message:string; cars:Car[]}>{
+        try{
+            const cars = await this.carRepository.find();
+            if(!cars|| cars.length===0){
+                throw new HttpException('No cars fooound',HttpStatus.NOT_FOUND);
+            }
+                return { status: HttpStatus.OK, message: 'success', cars };
+        }catch(error){
+            let status = HttpStatus.INTERNAL_SERVER_ERROR;
+            let message = 'Ineternal Server Error';
+            if(error instanceof HttpException){
+                status = error.getStatus();
+                let errorMessage = error.getResponse();
+                message = typeof errorMessage === 'string' ? errorMessage = 'An error occured';
+            }
+            return {status, message, cars: []};
         }
-        reutrn {status : }
     }
-}
+
+// CreateCar
+
+    public async postCar(carData: Partial<Car>):Promise<Car>{
+        // Check if the ID is provided
+        if(carData.hasOwnProperty('id') && carData.id !== undefined){
+
+            const existingCar = await this.carRepository.findOne({where : {carData.id}});
+            
+            if(existingCar){
+                throw new HttpException('A car with the provided ID already exists', HttpStatus.CONFLICT);
+            }
+        }
+
+        const requiredFields = ['make','model', 'year', "color","mileage", "price","transmission", "energine", "horsepower", "features", "owners", "image"];
+        for(const field of requiredFields){
+            if(!(field in carData) || !carData[field]){
+                throw new HttpException(`Missing required field: ${field}`, HttpStatus.BAD_REQUEST);
+            }
+        }
+
+        const newCar = this.carRepository.create(carData);
+        const savedCar = await this.carRepository.save(newCar);
+        return savedCar;
+    }
+
+    public async getCarByID(id: number):Promise<{status: number; message: string;car:Car}>{
+        try{
+            const car = await this.carRepository.findOne({where:{id}});
+            if(!car){
+                throw new NotFoundException(`Car with ID ${id} not found`)
+            }
+            return {status: HttpStatus.OK, message: 'success', car};
+        }
+    }
+
 }

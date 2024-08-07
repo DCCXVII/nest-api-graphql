@@ -1,9 +1,13 @@
-import { Controller } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put } from "@nestjs/common";
+import { CarService } from "./car.service";
+import { CarDto } from "./car.dto";
+import { Car } from "./car.entity";
 
 @Controller('car')
 export class CarController{
 
-    constructor(private carService:CarService){
+    constructor(private readonly carService:CarService){}
+        
         @Get()
         public getCar(){
             return this.carService.getCar();
@@ -29,4 +33,4 @@ export class CarController{
             return this.carService.putCarByID(id,carData);
         }
     }
-}
+
