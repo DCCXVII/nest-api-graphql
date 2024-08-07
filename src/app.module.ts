@@ -4,8 +4,11 @@ import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CarModule } from './car/car.module';
 import {ConfigModule} from '@nestjs/config';
-import { RequestLoggerMiddleware } from './request-logger.middleware';
-import { CarModule } from './car/car.module';
+import { RequestLoggerMiddleware } from './car/request-logger.middleware';
+import { CarController } from './car/car.controller';
+import { CarService } from './car/car.service';
+import { Car } from './car/car.entity';
+import { CarRepository } from './car/car.repo';
 
 
 @Module({

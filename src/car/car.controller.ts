@@ -29,7 +29,7 @@ export class CarController{
         }
 
         @Put(':id')
-        public async putCarById(@Param('id') id: number, @Body carData: Partial<Car>){
+    public async putCarByID(@Param('id') id: number, @Body() carData: Partial<Car>) {
             return this.carService.putCarByID(id,carData);
         }
     }
